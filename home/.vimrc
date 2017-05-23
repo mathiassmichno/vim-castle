@@ -16,7 +16,7 @@ Plug 'SirVer/ultisnips' | Plug 'honza/vim-snippets'
 Plug 'airblade/vim-gitgutter'
 Plug 'tpope/vim-fugitive'
 Plug 'tpope/vim-dispatch'
-Plug 'lervag/vimtex'
+Plug 'delusionallogic/vimtex', {'for': 'tex'}
 
 " Interface
 Plug 'easymotion/vim-easymotion'
@@ -58,6 +58,7 @@ augroup END
 " Vim stuff:
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 let mapleader=","
+let maplocalleader=",,"
 filetype indent on "file specific indentation rules
 
 set tabstop=4 "set tab size
@@ -79,7 +80,7 @@ set foldmethod=indent "Fold based on indentation
 set nobackup
 set nowritebackup
 set noswapfile
-
+map <leader>gf :e <cfile><cr>
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " Visual
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""
@@ -183,13 +184,23 @@ autocmd BufWritePre * :%s/\s\+$//e
 " Vimtex
 let g:tex_flavor = "latex"
 let g:vimtex_enable = 1
-if !exists('g:ycm_semantic_triggers')
-        let g:ycm_semantic_triggers = {}
-          endif
-            let g:ycm_semantic_triggers.tex = [
-                    \ 're!\\[A-Za-z]*(ref|cite)[A-Za-z]*([^]]*])?{([^}]*, ?)*'
-                    \ ]
-
+let g:vimtex_compiler_progname = 'nvr'
+let g:vimtex_view_method = 'skim'
+let g:vimtex_quickfix_open_on_warning = 0
+if !exists('g:deoplete#omni#input_patterns')
+    let g:deoplete#omni#input_patterns = {}
+endif
+if !exists('g:deoplete#omni#functions')
+    let g:deoplete#omni#functions = {}
+endif
+let g:deoplete#omni#input_patterns.tex =
+            \   '\\(?:'
+            \  .   '\w*cite\w*(?:\s*\[[^]]*\]){0,2}\s*{[^}]*'
+            \  .  '|\w*ref(?:\s*\{[^}]*|range\s*\{[^,}]*(?:}{)?)'
+            \  .  '|hyperref\s*\[[^]]*'
+            \  .  '|includegraphics\*?(?:\s*\[[^]]*\]){0,2}\s*\{[^}]*'
+            \  .  '|(?:include(?:only)?|input)\s*\{[^}]*'
+            \  .')'
 inoremap <expr> <CR> pumvisible() ? "\<C-y>" : "\<C-g>u\<CR>"
 inoremap <expr> <C-n> pumvisible() ? '<C-n>' :
             \ '<C-n><C-r>=pumvisible() ? "\<lt>Down>" : ""<CR>'

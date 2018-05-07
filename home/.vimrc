@@ -1,30 +1,56 @@
+set nocompatible
+filetype indent plugin on "file specific indentation rules
+
+let g:python_host_prog = '/Users/michno/.pyenv/versions/neovim2/bin/python'
+let g:python3_host_prog = '/Users/michno/.pyenv/versions/neovim3/bin/python'
+
 " Specify a directory for plugins (for Neovim: ~/.local/share/nvim/plugged)
 call plug#begin('~/.local/share/nvim/plugged')
 
 " Colors
 Plug 'mhartington/oceanic-next'
 
+" Convenience
+Plug 'kopischke/vim-stay'
 Plug 'tpope/vim-sensible'
-" Syntax
-Plug 'tpope/vim-surround'
-Plug 'Shougo/deoplete.nvim', {'do': ':UpdateRemotePlugins'}
-    Plug 'zchee/deoplete-jedi'
-Plug 'benekastah/neomake'
+Plug 'easymotion/vim-easymotion'
+
+" Language IDE-ish stuff
 Plug 'SirVer/ultisnips' | Plug 'honza/vim-snippets'
+Plug 'w0rp/ale'
+if has('nvim')
+    Plug 'Shougo/deoplete.nvim', { 'do': ':UpdateRemotePlugins' }
+else
+    Plug 'Shougo/deoplete.nvim'
+    Plug 'roxma/nvim-yarp'
+    Plug 'roxma/vim-hug-neovim-rpc'
+endif
+Plug 'zchee/deoplete-jedi'
+Plug 'zchee/deoplete-clang'
+" Plug 'davidhalter/jedi-vim'
+Plug 'lepture/vim-jinja'
+Plug 'lervag/vimtex', {'for': 'tex'}
+Plug 'rhysd/vim-grammarous'
+
+" Syntactic sugar
+Plug 'tpope/vim-surround'
+Plug 'tpope/vim-commentary'
+Plug 'godlygeek/tabular'
+Plug 'editorconfig/editorconfig-vim'
 
 " Integration
 Plug 'airblade/vim-gitgutter'
 Plug 'tpope/vim-fugitive'
 Plug 'tpope/vim-dispatch'
-Plug 'delusionallogic/vimtex', {'for': 'tex'}
 
 " Interface
-Plug 'easymotion/vim-easymotion'
 Plug 'scrooloose/nerdtree'
-Plug 'vim-airline/vim-airline' | Plug 'vim-airline/vim-airline-themes'
+Plug 'itchyny/lightline.vim'
+" Plug 'vim-airline/vim-airline' | Plug 'vim-airline/vim-airline-themes'
 Plug 'sjl/gundo.vim'
-Plug 'tpope/vim-commentary'
 Plug 'ryanoasis/vim-devicons'
+Plug 'junegunn/fzf', { 'dir': '~/.fzf', 'do': './install --all' }
+Plug 'junegunn/fzf.vim'
 
 " Initialize plugin system
 call plug#end()
@@ -59,12 +85,12 @@ augroup END
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 let mapleader=","
 let maplocalleader=",,"
-filetype indent on "file specific indentation rules
 
 set tabstop=4 "set tab size
 set softtabstop=4 "set spaces in tabs
 set shiftwidth=4 "once again tabstop
 set expandtab
+autocmd FileType make setlocal noexpandtab
 set showtabline=1 "Show tab lines when it's at least two deep
 set autoindent
 set hidden "Let you hide buffers with changes
@@ -77,9 +103,12 @@ set foldlevelstart=10 "unfold must stuff
 set foldnestmax=10 "no folds over 10
 set foldmethod=indent "Fold based on indentation
 
+set viewoptions=cursor,folds,slash,unix
+
 set nobackup
 set nowritebackup
 set noswapfile
+
 map <leader>gf :e <cfile><cr>
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " Visual
@@ -90,12 +119,24 @@ endif
 
 colorscheme OceanicNext
 
-let g:airline_powerline_fonts=1
-let g:airline_theme='oceanicnext'
-let g:airline#extensions#tabline#enabled = 1
+let g:lightline = {
+      \ 'colorscheme': 'oceanicnext',
+      \ 'active': {
+      \   'left': [ [ 'mode', 'paste' ],
+      \             [ 'gitbranch', 'readonly', 'filename', 'modified' ] ]
+      \ },
+      \ 'component_function': {
+      \   'gitbranch': 'fugitive#head'
+      \ },
+      \ }
+" let g:airline_powerline_fonts=1
+" let g:airline_theme='oceanicnext'
+" let g:airline#extensions#tabline#enabled = 1
+" let g:airline#extensions#ale#enabled = 1
 set noshowmode
 set laststatus=2 "Always display the statusline
-
+set linebreak
+set showtabline=2 "Always display the tabline
 set showmatch "show matching parens
 set matchtime=15
 set cursorline "highlight current line
@@ -134,6 +175,40 @@ set smartcase
 " turn off search highlight
 nnoremap <leader><space> :nohlsearch<CR>
 
+
+""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+" ALE
+""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+let g:ale_sign_error = '⤫'
+let g:ale_sign_warning = '⚠'
+
+let g:ale_python_flake8_executable = "python3"
+let g:ale_python_flake8_options = "-m flake8 --ignore=E501"
+let g:ale_python_pylint_executable = "python3"
+let g:ale_python_pylint_options = "-m pylint"
+nmap <silent> <C-k> <Plug>(ale_previous_wrap)
+nmap <silent> <C-j> <Plug>(ale_next_wrap)
+
+""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+" Deoplete
+""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+" deoplete options
+let g:deoplete#enable_at_startup = 1
+let g:deoplete#enable_smart_case = 1
+
+" Disable the candidates in Comment/String syntaxes.
+call deoplete#custom#source('_',
+            \ 'disabled_syntaxes', ['Comment', 'String'])
+
+autocmd InsertLeave,CompleteDone * if pumvisible() == 0 | pclose | endif
+
+" Jedi
+" let g:jedi#completions_enabled = 0
+" let g:jedi#use_tabs_not_buffers = 1
+
+let g:deoplete#sources#clang#libclang_path = '/Library/Developer/CommandLineTools/usr/lib/libclang.dylib'
+let g:deoplete#sources#clang#clang_header = '/Library/Developer/CommandLineTools/usr/lib/clang'
+
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " Misc. config
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""
@@ -167,19 +242,26 @@ cnoremap w!! w !sudo tee %
 
 set diffopt+=vertical
 
-" Deoplete
-let g:deoplete#enable_at_startup = 1
-" use tab to cycle thorugh suggestions
-inoremap <silent><expr> <Tab> pumvisible() ? "\<C-n>" : "\<Tab>"
 
 " Ultisnips
 let g:UltiSnipsUsePythonVersion = 3
 
-" Neomake
-autocmd! BufWritePost * Neomake
-
 " Remove trailing whitespace when saving
 autocmd BufWritePre * :%s/\s\+$//e
+
+" Grammarous
+let g:grammarous#hooks = {}
+function! g:grammarous#hooks.on_check(errs) abort
+    nmap <buffer><C-n> <Plug>(grammarous-move-to-next-error)
+    nmap <buffer><C-p> <Plug>(grammarous-move-to-previous-error)
+    nmap <buffer><C-f> <Plug>(grammarous-fixit)
+endfunction
+
+function! g:grammarous#hooks.on_reset(errs) abort
+    nunmap <buffer><C-n>
+    nunmap <buffer><C-p>
+    nunmap <buffer><C-f>
+endfunction
 
 " Vimtex
 let g:tex_flavor = "latex"
@@ -237,3 +319,6 @@ function! s:ExecuteInShell(command)
     echo 'Shell command ' . command . ' executed.'
 endfunction
 command! -complete=shellcmd -nargs=+ Shell call s:ExecuteInShell(<q-args>)
+
+
+

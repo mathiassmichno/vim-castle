@@ -1,0 +1,24 @@
+{
+  "languageserver": {
+    "ccls": {
+      "command": "ccls",
+      "filetypes": ["c", "cpp", "cuda", "objc", "objcpp"],
+      "rootPatterns": [".ccls-root", "compile_commands.json"],
+      "initializationOptions": {
+        "cache": {
+          "directory": ".ccls-cache"
+        },
+        "client": {
+          "snippetSupport": true
+        }
+      }
+    }
+  },
+  "git.enableGutter": true,
+  "http.proxyStrictSSL": false,
+  "python.formatting.provider": "black",
+  "python.pythonPath": "python3.11",
+  "python.linting.ruffEnabled": true,
+  "pyright.testing.provider": "pytest"
+}
+
